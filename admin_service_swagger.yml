@@ -1,0 +1,125 @@
+openapi: 3.0.0
+info:
+    title: API
+    description: Rest API for admin portal
+    version: 0.1.0
+
+servers:
+    - url: admapi.systeambiz.com
+      description: API endpoint
+
+paths:
+    /orders:
+        get:
+            summary: To show all orders from admin user
+            responses:
+                '200':
+                    description: Returns list of orders
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    type: object
+                                    properties:
+                                        order_id:
+                                            type: integer
+                                        total_amount:
+                                            type: integer
+                                        created_on:
+                                            type: string
+                                            format: date-time
+                                        status:
+                                            type: string
+                                        products:
+                                          type: array
+                                          items:
+                                              type: object
+                                              properties:
+                                                  product_name:
+                                                      type: string
+                                                  product_id:
+                                                      type: integer
+                                                  quantity:
+                                                      type: integer
+                                                  unit_cost:
+                                                      type: integer
+    /nextorder:
+        get:
+            summary: get next order for given user
+            parameters:
+                - in: query
+                  name: email
+                  schema:
+                      type: string
+                  description: pass user email
+            responses:
+                '200':
+                    description: Return an order
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    order_id:
+                                        type: integer
+                                    total_amount:
+                                        type: integer
+                                    created_on:
+                                        type: string
+                                        format: date-time
+                                    status:
+                                        type: string
+                                    products:
+                                      type: array
+                                      items:
+                                          type: object
+                                          properties:
+                                              product_name:
+                                                  type: string
+                                              product_id:
+                                                  type: integer
+                                              quantity:
+                                                  type: integer
+                                              unit_cost:
+                                                  type: integer
+
+    /changeorderstatus:
+        post:
+            summary: Change order status
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                id:
+                                    type: integer
+            responses:
+                '200':
+                    description: successful order status change
+
+
+
+    /user:
+        get:
+            summary: To get user info from database. Based on role value allow access
+            parameters:
+                - in: query
+                  name: email
+                  schema:
+                      type: string
+                  description: pass user email
+
+            responses:
+                '200':
+                    description: Returns user role. Show this role on UI
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    role:
+                                        type: string
+                '404':
+                    description: user not found
