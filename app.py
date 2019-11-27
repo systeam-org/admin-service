@@ -3,7 +3,7 @@ from flask import request,Flask, Response
 from flask_cors import CORS
 import operations
 app = Flask(__name__)
-
+CORS(app)
 @app.route('/orders', methods=['GET'])
 def get_orders():
     result = operations.get_orders(request.values.get('email'))
@@ -27,14 +27,9 @@ def get_user():
 def hello():
     return Response({"Hello world"}, mimetype='application/json', status=200)
 
-@app.route('/user', methods=['POST'])
-def add_or_update_user():
-    body = json.loads(request.data)
-    result = operations.add_or_update_user(body)
-    return Response(json.dumps({}), mimetype='application/json', status=200)
-
 @app.route('/changestatus', methods=['POST'])
 def change_order_status():
+    print(request)
     body = json.loads(request.data)
     result = operations.change_order_status(body['id'])
     return Response(json.dumps({}), mimetype='application/json', status=200)

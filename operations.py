@@ -82,11 +82,11 @@ def get_user(email):
 
 def get_next_order(email):
     role = get_user(email).get('role')
+    print(role)
     if role == 'OrderAdmin':
         cursor = get_connection().cursor()
         cursor.execute("SELECT * FROM next_order where  status= 'Ordered'")
         rows = cursor.fetchall()
-
         returnid = None
         if len(rows) < 1:
             amq_conf = None
@@ -205,6 +205,7 @@ def get_next_order(email):
         cursor = get_connection().cursor()
         cursor.execute("SELECT * FROM orders join order_details on orders.order_id = order_details.order_id where orders.order_id = " + str(returnid) + "")
         rows = cursor.fetchall()
+        print(rows)
         processed_orders =[]
         result = []
         for row in rows:
