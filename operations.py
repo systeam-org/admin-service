@@ -23,6 +23,7 @@ def get_connection():
                                       host=Constants.PRODUCTION_DATABASE_ENDPOINT,
                                       database=Constants.PRODUCTION_DATABASE_NAME,
                                       auth_plugin='mysql_native_password')
+        cnx.autocommit = True
     return cnx
 
 def isOpen(dns,port):
