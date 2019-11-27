@@ -3,6 +3,7 @@ from stompest.config import StompConfig
 from stompest.sync import Stomp
 from stompest.protocol import StompSpec
 import socket
+import Constants
 
 import os
 cnx = None
@@ -10,10 +11,18 @@ cnx = None
 def get_connection():
     global cnx
 
-    if not cnx:
-        cnx = mysql.connector.connect(user = 'root', password='Admin@123', host='localhost', database = 'systeam_ecommerce',
-                              auth_plugin='mysql_native_password')
-        cnx.autocommit = True
+    try:
+        cnx = mysql.connector.connect(user=Constants.LOCAL_DATABASE_USER,
+                                      password=Constants.LOCAL_DATABASE_PASSWORD,
+                                      host=Constants.LOCAL_DATABASE_ENDPOINT,
+                                      database=Constants.LOCAL_DATABASE_NAME,
+                                      auth_plugin='mysql_native_password')
+    except:
+        cnx = mysql.connector.connect(user=Constants.PRODUCTION_DATABASE_USER,
+                                      password=Constants.PRODUCTION_DATABASE_PASSWORD,
+                                      host=Constants.PRODUCTION_DATABASE_ENDPOINT,
+                                      database=Constants.PRODUCTION_DATABASE_NAME,
+                                      auth_plugin='mysql_native_password')
     return cnx
 
 def isOpen(dns,port):
