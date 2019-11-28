@@ -27,7 +27,7 @@ kind: Service
 metadata:
   name: admin-service
   labels:
-    run: admin-service
+    app: admin-service
 spec:
   ports:
   - port: 83
@@ -37,4 +37,4 @@ spec:
     nodePort: 30083
   type: NodePort
   selector:
-    run: buyer-service
+    app: admin-service

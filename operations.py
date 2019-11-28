@@ -23,7 +23,7 @@ def get_connection():
                                       host=Constants.PRODUCTION_DATABASE_ENDPOINT,
                                       database=Constants.PRODUCTION_DATABASE_NAME,
                                       auth_plugin='mysql_native_password')
-        cnx.autocommit = True
+    cnx.autocommit = True
     return cnx
 
 def isOpen(dns,port):
@@ -36,8 +36,8 @@ def isOpen(dns,port):
       return False
 
 def get_orders(email):
-
-    cursor = get_connection().cursor()
+    conn = get_connection()
+    cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM orders join order_details on orders.order_id = order_details.order_id")
 
@@ -67,14 +67,17 @@ def get_orders(email):
         for i in range(len(result)):
             if result[i]['order_id'] == order_id:
                 result[i]['products'].append(product)
+    conn.close()
     return result
 
 
 def get_user(email):
-    cursor = get_connection().cursor()
+    conn = get_connection()
+    cursor = conn.cursor()
     cursor.execute("SELECT role FROM users where email = '"+email+"'")
     rows = cursor.fetchall()
 
+    conn.close()
     if len(rows) < 1:
         return None
     else:
@@ -82,9 +85,11 @@ def get_user(email):
 
 def get_next_order(email):
     role = get_user(email).get('role')
-    print(role)
+    conn = get_connection()
+
+    returnid = None
     if role == 'OrderAdmin':
-        cursor = get_connection().cursor()
+        cursor = conn.cursor()
         cursor.execute("SELECT * FROM next_order where  status= 'Ordered'")
         rows = cursor.fetchall()
         returnid = None
@@ -92,10 +97,10 @@ def get_next_order(email):
             amq_conf = None
             queue = '/queue/ordered'
 
-            if isOpen('activemq.default', 61612):
-                amq_conf = StompConfig('tcp://activemq.default:61612')
-            else:
-                amq_conf = StompConfig('tcp://localhost:30012')
+            #if isOpen('activemq.default', 61612):
+            amq_conf = StompConfig('tcp://activemq-service.default:61613')
+            #else:
+            #    amq_conf = StompConfig('tcp://localhost:30012')
 
             try:
                 client = Stomp(amq_conf)
@@ -104,7 +109,6 @@ def get_next_order(email):
                 if client.canRead(timeout=2):
                     frame = client.receiveFrame()
 
-                    conn = get_connection()
                     cursor = conn.cursor()
 
                     sql = "Insert into next_order (status, order_id) values (%s,%s)"
@@ -122,7 +126,7 @@ def get_next_order(email):
         else:
             returnid = rows[0][0]
     elif role == 'ShipmentAdmin':
-        cursor = get_connection().cursor()
+        cursor = conn.cursor()
         cursor.execute("SELECT * FROM next_order where  status= 'ReadyToShip'")
         rows = cursor.fetchall()
 
@@ -131,10 +135,10 @@ def get_next_order(email):
             amq_conf = None
             queue = '/queue/readytoship'
 
-            if isOpen('activemq.default', 61612):
-                amq_conf = StompConfig('tcp://activemq.default:61612')
-            else:
-                amq_conf = StompConfig('tcp://localhost:30012')
+            #if isOpen('activemq.default', 61612):
+            amq_conf = StompConfig('tcp://activemq-service.default:61613')
+            #else:
+            #    amq_conf = StompConfig('tcp://localhost:30012')
 
             try:
                 client = Stomp(amq_conf)
@@ -143,7 +147,6 @@ def get_next_order(email):
                 if client.canRead(timeout=2):
                     frame = client.receiveFrame()
 
-                    conn = get_connection()
                     cursor = conn.cursor()
 
                     sql = "Insert into next_order (status, order_id) values (%s,%s)"
@@ -161,7 +164,7 @@ def get_next_order(email):
         else:
             returnid = rows[0][0]
     elif role == 'DeliveryAdmin':
-        cursor = get_connection().cursor()
+        cursor = conn.cursor()
         cursor.execute("SELECT * FROM next_order where  status= 'Shipped'")
         rows = cursor.fetchall()
 
@@ -170,10 +173,10 @@ def get_next_order(email):
             amq_conf = None
             queue = '/queue/shipped'
 
-            if isOpen('activemq.default', 61612):
-                amq_conf = StompConfig('tcp://activemq.default:61612')
-            else:
-                amq_conf = StompConfig('tcp://localhost:30012')
+            #if isOpen('activemq.default', 61612):
+            amq_conf = StompConfig('tcp://activemq-service.default:61613')
+            #else:
+            #    amq_conf = StompConfig('tcp://localhost:30012')
 
             try:
                 client = Stomp(amq_conf)
@@ -182,7 +185,6 @@ def get_next_order(email):
                 if client.canRead(timeout=2):
                     frame = client.receiveFrame()
 
-                    conn = get_connection()
                     cursor = conn.cursor()
 
                     sql = "Insert into next_order (status, order_id) values (%s,%s)"
@@ -202,7 +204,7 @@ def get_next_order(email):
 
 
     if returnid:
-        cursor = get_connection().cursor()
+        cursor = conn.cursor()
         cursor.execute("SELECT * FROM orders join order_details on orders.order_id = order_details.order_id where orders.order_id = " + str(returnid) + "")
         rows = cursor.fetchall()
         print(rows)
@@ -230,9 +232,10 @@ def get_next_order(email):
             for i in range(len(result)):
                 if result[i]['order_id'] == order_id:
                     result[i]['products'].append(product)
-
+        conn.close()
         return result
     else:
+        conn.close()
         return []
 def change_order_status(id):
     conn= get_connection()
@@ -258,10 +261,10 @@ def change_order_status(id):
         return True
     if next_status == 'ReadyToShip' or next_status == 'Shipped':
             amq_conf = None
-            if isOpen('activemq.default', 61612):
-                amq_conf = StompConfig('tcp://activemq.default:61612')
-            else:
-                amq_conf = StompConfig('tcp://localhost:30012')
+            #if isOpen('activemq.default', 61612):
+            amq_conf = StompConfig('tcp://activemq-service.default:61613')
+            #else:
+            #    amq_conf = StompConfig('tcp://localhost:30012')
             try:
                 client = Stomp(amq_conf)
                 client.connect()
@@ -276,4 +279,5 @@ def change_order_status(id):
     rows = cursor.execute(sql)
 
     conn.commit()
+    conn.close()
     return True

@@ -4,6 +4,7 @@ from flask_cors import CORS
 import operations
 app = Flask(__name__)
 CORS(app)
+
 @app.route('/orders', methods=['GET'])
 def get_orders():
     result = operations.get_orders(request.values.get('email'))
