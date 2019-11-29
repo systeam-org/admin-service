@@ -17,7 +17,6 @@ spec:
       containers:
       - name: admin-service
         image: systeamorg/admin-service
-        imagePullPolicy: Never
         ports:
         - containerPort: 83
 
